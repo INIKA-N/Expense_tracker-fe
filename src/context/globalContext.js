@@ -1,6 +1,3 @@
-// Remove the hardcoded BASE_URL
-// const BASE_URL = "http://localhost:5000/api/v1/";
-
 import React, { useContext, useState } from "react";
 import axios from "axios";
 
@@ -13,60 +10,90 @@ export const GlobalProvider = ({ children }) => {
   const [expenses, setExpenses] = useState([]);
   const [error, setError] = useState(null);
 
-  // Calculate incomes
   const addIncome = async (income) => {
-    const response = await axios.post(`${BASE_URL}add-income`, income).catch((err) => {
+    try {
+      await axios.post(`${BASE_URL}add-income`, income);
+      getIncomes();
+    } catch (err) {
       setError(err.response.data.message);
-    });
-    getIncomes();
+    }
   };
 
   const getIncomes = async () => {
-    const response = await axios.get(`${BASE_URL}get-incomes`);
-    setIncomes(response.data);
-    console.log(response.data);
+    try {
+      const response = await axios.get(`${BASE_URL}get-incomes`);
+      if (Array.isArray(response.data)) {
+        setIncomes(response.data);
+      } else {
+        console.error("Expected an array for incomes");
+        setIncomes([]);
+      }
+      console.log(response.data);
+    } catch (err) {
+      setError(err.response ? err.response.data.message : err.message);
+    }
   };
 
   const deleteIncome = async (id) => {
-    const res = await axios.delete(`${BASE_URL}delete-income/${id}`);
-    getIncomes();
+    try {
+      await axios.delete(`${BASE_URL}delete-income/${id}`);
+      getIncomes();
+    } catch (err) {
+      setError(err.response ? err.response.data.message : err.message);
+    }
   };
 
   const totalIncome = () => {
     let totalIncome = 0;
-    incomes.forEach((income) => {
-      totalIncome = totalIncome + income.amount;
-    });
-
+    if (Array.isArray(incomes)) {
+      incomes.forEach((income) => {
+        totalIncome += income.amount;
+      });
+    }
     return totalIncome;
   };
 
-  // Calculate expenses
-  const addExpense = async (income) => {
-    const response = await axios.post(`${BASE_URL}add-expense`, income).catch((err) => {
+  const addExpense = async (expense) => {
+    try {
+      await axios.post(`${BASE_URL}add-expense`, expense);
+      getExpenses();
+    } catch (err) {
       setError(err.response.data.message);
-    });
-    getExpenses();
+    }
   };
 
   const getExpenses = async () => {
-    const response = await axios.get(`${BASE_URL}get-expenses`);
-    setExpenses(response.data);
-    console.log(response.data);
+    try {
+      const response = await axios.get(`${BASE_URL}get-expenses`);
+      if (Array.isArray(response.data)) {
+        setExpenses(response.data);
+      } else {
+        console.error("Expected an array for expenses");
+        setExpenses([]);
+      }
+      console.log(response.data);
+    } catch (err) {
+      setError(err.response ? err.response.data.message : err.message);
+    }
   };
 
   const deleteExpense = async (id) => {
-    const res = await axios.delete(`${BASE_URL}delete-expense/${id}`);
-    getExpenses();
+    try {
+      await axios.delete(`${BASE_URL}delete-expense/${id}`);
+      getExpenses();
+    } catch (err) {
+      setError(err.response ? err.response.data.message : err.message);
+    }
   };
 
   const totalExpenses = () => {
-    let totalIncome = 0;
-    expenses.forEach((income) => {
-      totalIncome = totalIncome + income.amount;
-    });
-
-    return totalIncome;
+    let totalExpenses = 0;
+    if (Array.isArray(expenses)) {
+      expenses.forEach((expense) => {
+        totalExpenses += expense.amount;
+      });
+    }
+    return totalExpenses;
   };
 
   const totalBalance = () => {
@@ -78,7 +105,6 @@ export const GlobalProvider = ({ children }) => {
     history.sort((a, b) => {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-
     return history.slice(0, 3);
   };
 
